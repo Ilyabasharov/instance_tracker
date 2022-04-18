@@ -10,4 +10,5 @@ pycocotools==2.0.4
 prettytable==2.5.0
 click
 tqdm
-h5py
+cython
+pillow==6.0.0

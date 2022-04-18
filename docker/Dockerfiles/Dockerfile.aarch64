@@ -1,5 +1,5 @@
 ARG CUDA_VERSION=10.2
-ARG OS_VERSION=20.04
+ARG OS_VERSION=18.04
 
 FROM nvcr.io/nvidia/l4t-base:r32.5.0
 
@@ -41,9 +41,9 @@ RUN apt-get update \
             libhdf5-dev \
             zlib1g-dev \
             zip \
+	    unzip \
             libjpeg8-dev \
             libopenmpi2 \
-            oplibswscale-devenmpi-bin \
             openmpi-common \
             protobuf-compiler \
             libprotoc-dev \
@@ -126,9 +126,9 @@ COPY --chown=${USER}:${USER} requirements/ ${DEFAULT_PATH}/${USER}/${PROJECT_PAT
 
 ARG PYTORCH_URL=https://nvidia.box.com/shared/static/fjtbno0vpo676a25cgvuqc1wty0fkkg6.whl
 ARG PYTORCH_WHL=torch-1.10.0-cp36-cp36m-linux_aarch64.whl
-
-ARG TORCHVISION_WHL=https://github.com/pytorch/vision/archive/refs/tags/v0.11.0.zip
+ARG TORCHVISION_URL=https://github.com/pytorch/vision/archive/refs/tags/v0.11.0.zip
 ARG TORCHVISION_ZIP=v0.11.0.zip
+ARG TORCHVISION_FOLDER=vision-0.11.0
 
 RUN python3 -m pip install \
         --no-cache-dir \
@@ -156,7 +156,7 @@ RUN python3 -m pip install \
         ${TORCHVISION_URL} \
         -O ${TORCHVISION_ZIP} \
     && unzip ${TORCHVISION_ZIP} \
-    && cd ${TORCHVISION_ZIP} \
+    && cd ${TORCHVISION_FOLDER} \
     && python3 setup.py install \
     && cd .. \
     && pip3 install \
@@ -170,3 +170,5 @@ RUN python3 -m pip install \
 
 ENV PYTHONPATH="${PYTHONPATH}:${DEFAULT_PATH}/${USER}/torch2trt"
 ENV CUDA_LAUNCH_BLOCKING=1
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8

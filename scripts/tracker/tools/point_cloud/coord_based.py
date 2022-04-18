@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import torch
 from typing import Tuple
 
@@ -16,7 +14,7 @@ class PointCloudSampler(torch.nn.Module):
         offset_max: float=128.,
         *args,
         **kwargs,
-    ) -> PointCloudSampler:
+    ) -> None:
 
         super().__init__()
 

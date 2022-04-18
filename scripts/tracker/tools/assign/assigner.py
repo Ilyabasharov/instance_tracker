@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-from __future__ import annotations
-
 import torch
 import numpy as np
 import numba as nb
@@ -81,7 +78,7 @@ class Assigner:
         means_threshold: float,
         *args,
         **kwargs,
-    ) -> Assigner:
+    ) -> None:
         
         self.optim = optim
         self.use_mask_iou = use_mask_iou

@@ -1,8 +1,6 @@
 #!/usr/bin/python3
 # coding: utf-8
 
-from __future__ import annotations
-
 import os
 import cv2
 import click
@@ -24,7 +22,7 @@ class Tracker:
     def __init__(
         self,
         config_path: str='../config.yaml',
-    ) -> Tracker:
+    ) -> None:
 
         with open(config_path, 'r') as file:
             params = yaml.load(
@@ -38,7 +36,7 @@ class Tracker:
     def track(
         self,
         image: np.ndarray,
-    ) -> None:
+    ) -> tuple:
 
         labels, scores, boxes, masks, image = self.yolact_edge.inference(
             image=image,

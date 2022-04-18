@@ -25,6 +25,8 @@ RUN apt-get update \
             lsb-release \
             sudo \
             gnupg2 \
+	    zip \
+            unzip \
             python3-pip \
             python3-dev \
             python3-wheel \
@@ -136,3 +138,5 @@ RUN python3 -m pip install \
 
 ENV PYTHONPATH="${PYTHONPATH}:${DEFAULT_PATH}/${USER}/torch2trt"
 ENV CUDA_LAUNCH_BLOCKING=1
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8

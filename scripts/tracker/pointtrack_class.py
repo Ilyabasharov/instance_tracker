@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import torch
 from tracker.tools.assign.assigner import Assigner
 
@@ -15,7 +13,7 @@ class PointTrack:
     def __init__(
         self,
         params: dict,
-    ) -> PointTrack:
+    ) -> None:
 
         self.embedder = dict()
         self.assigner = dict()

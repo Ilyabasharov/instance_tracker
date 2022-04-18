@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import torch
 import utils
 import numpy as np
@@ -16,7 +14,7 @@ class FilterDetections(torch.nn.Module):
         device: str,
         *args,
         **kwargs,
-    ) -> FilterDetections:
+    ) -> None:
         
         super().__init__()
 
