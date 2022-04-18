@@ -7,14 +7,14 @@
 This branch works with **PyTorch 1.10.0**.
 
 <div align="center">
+
+[![license](https://shields.io/badge/license-MIT-green)](https://github.com/Ilyabasharov/instance_tracker/blob/master/LICENSE)
     
-    [![license](https://shields.io/badge/license-MIT-green)](https://github.com/Ilyabasharov/instance_tracker/blob/master/LICENSE)
-    
-    [💪Introduction](https://github.com/Ilyabasharov/instance_tracker/blob/master/README.md#introduction) |
-    [🛠️Installation](https://github.com/Ilyabasharov/instance_tracker/blob/master/README.md#installation) |
-    [🏃Run](https://github.com/Ilyabasharov/instance_tracker/blob/master/README.md#run) |
-    [👀Contents](https://github.com/Ilyabasharov/instance_tracker/blob/master/README.md#contents) |
-    [🔖Docs](https://github.com/Ilyabasharov/instance_tracker/tree/master/docs)
+[💪Introduction](https://github.com/Ilyabasharov/instance_tracker/blob/master/README.md#introduction) |
+[🛠️Installation](https://github.com/Ilyabasharov/instance_tracker/blob/master/README.md#installation) |
+[🏃Run](https://github.com/Ilyabasharov/instance_tracker/blob/master/README.md#run) |
+[👀Contents](https://github.com/Ilyabasharov/instance_tracker/blob/master/README.md#contents) |
+[🔖Docs](https://github.com/Ilyabasharov/instance_tracker/tree/master/docs)
 
 </div>
 
