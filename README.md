@@ -2,16 +2,16 @@
 
 ## Introduction
 
-[Object tracking algorithm](https://gitlab.com/sdbcs-nio3/itl_mipt/segm_tracking/alg/tracking/pointtrack/-/blob/indexing_fast/docs/point_track.md) based on cloud of points using segmentation masks. It was improved in case of speed using GPU-based preprocessing and numba-based assinging algorithm.
+[Object tracking algorithm](https://github.com/Ilyabasharov/instance_tracker/docs/point_track.md) based on cloud of points using segmentation masks. It was improved in case of speed using GPU-based preprocessing and numba-based assinging algorithm.
 
 This branch works with **PyTorch 1.10.0**.
 
 <div align="center">
-[💪Introduction](https://gitlab.com/sdbcs-nio3/itl_mipt/segm_tracking/alg/tracking/pointtrack/-/blob/indexing_fast/README.md#introduction) |
-[🛠️Installation](https://gitlab.com/sdbcs-nio3/itl_mipt/segm_tracking/alg/tracking/pointtrack/-/blob/indexing_fast/README.md#installation) |
-[🏃Run](https://gitlab.com/sdbcs-nio3/itl_mipt/segm_tracking/alg/tracking/pointtrack/-/blob/indexing_fast/README.md#run) |
-[👀Contents](https://gitlab.com/sdbcs-nio3/itl_mipt/segm_tracking/alg/tracking/pointtrack/-/blob/indexing_fast/README.md#contents) |
-[🔖Docs](https://gitlab.com/sdbcs-nio3/itl_mipt/segm_tracking/alg/tracking/pointtrack/-/blob/indexing_fast/docs)
+[💪Introduction](https://github.com/Ilyabasharov/instance_tracker/README.md#introduction) |
+[🛠️Installation](https://github.com/Ilyabasharov/instance_tracker/README.md#installation) |
+[🏃Run](https://github.com/Ilyabasharov/instance_tracker#installation/README.md#run) |
+[👀Contents](https://github.com/Ilyabasharov/instance_tracker/README.md#contents) |
+[🔖Docs](https://github.com/Ilyabasharov/instance_tracker/docs)
 
 </div>
 
@@ -35,7 +35,7 @@ source docker/docker_names.sh
 sh docker/build.sh
 sh docker/start_devel.sh
 ```
-See additional information in [docs/docker.md](https://gitlab.com/sdbcs-nio3/itl_mipt/segm_tracking/alg/tracking/pointtrack/-/blob/indexing_fast/docs/docker.md)
+See additional information in [docs/docker.md](https://github.com/Ilyabasharov/instance_tracker/docs/docker.md)
 
 After that you will be in project directory. You will need to register the package manually using scripts below.
 
@@ -71,12 +71,12 @@ roslaunch pointtrack main.launch \
 
 ### To train/test a model
 
-See additional information in [docs/point_track.md](https://gitlab.com/sdbcs-nio3/itl_mipt/segm_tracking/alg/tracking/pointtrack/-/blob/indexing_fast/docs/point_track.md)
+See additional information in [docs/point_track.md](https://github.com/Ilyabasharov/instance_tracker/docs/point_track.md)
 
 ### Improvements
 
 There were a lot of research on speedup vs quality of work. The original network structure was changed, accelerated using [torch2trt](https://nvidia-ai-iot.github.io/torch2trt/master/getting_started.html). The dependence of the inference speed on the size of segmentation masks is investigated. Also the model has also been accelerated using [Numba](https://numba.pydata.org) library. You can also set the maximum number of objects during tracking in order to accurately meet the allocated inference time.
-All of this improvements explained in [docs/point_track_improvements.md](https://gitlab.com/sdbcs-nio3/itl_mipt/segm_tracking/alg/tracking/pointtrack/-/blob/indexing_fast/docs/point_track_improvements.md)
+All of this improvements explained in [docs/point_track_improvements.md](https://github.com/Ilyabasharov/instance_tracker/docs/point_track_improvements.md)
 
 ## Contents
 
