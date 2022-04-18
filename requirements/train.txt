@@ -1,0 +1,12 @@
+numpy==1.19.4
+opencv-python==4.2.0.32
+pillow==6.2.2
+tqdm==4.43.0
+munkres==1.1.2
+cython==0.29.15
+pycocotools==2.0.4
+scikit-image==0.15.0
+scipy==1.5.4
+matplotlib==3.0.0
+pandas==0.25.1
+cvbase==0.5.5

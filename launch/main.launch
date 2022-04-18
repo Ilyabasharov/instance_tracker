@@ -1,0 +1,31 @@
+<launch>
+    <!-- Model params -->
+
+    <arg name="config_path" default="$(find pointtrack)/config.yaml" />
+
+    <!-- Configuring the Camera Namespace -->
+
+    <arg name="camera_ns" default="/kitti/camera_color_left/" />
+    <arg name="image_topic" default="image_raw" />
+    <arg name="objects_topic" default="objects" />
+    <arg name="objects_track_ids_topic" default="track_ids" />
+    <arg name="stats_rate" default="20" />
+    <arg name="queue_size" default="50" />
+
+    <group ns="$(arg camera_ns)">
+
+        <remap from="image" to="$(arg image_topic)" />
+        <remap from="objects" to="$(arg objects_topic)" />
+        <remap from="objects_track" to="$(arg objects_track_ids_topic)" />
+
+        <node pkg="pointtrack" type="ros_node.py" name="track_node" output="screen" required="true">
+
+            <param name="config_path" value="$(arg config_path)" />
+            <param name="stats_rate" value="$(arg stats_rate)" />
+            <param name="queue_size" value="$(arg queue_size)" />
+
+        </node>
+
+    </group>
+
+</launch>

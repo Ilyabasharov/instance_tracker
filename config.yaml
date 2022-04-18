@@ -1,0 +1,81 @@
+point_track:
+    classes:
+        - 'peds'
+        - 'cars'
+
+    embedder:
+        device: 'cuda'
+        tensorrt:
+            convert: false
+            fp16_mode: true
+            int8_mode: false #not tested
+            max_batch_size: 10 #should be the same as n_max_objects
+        offsetEmb:
+            num_points: 1500 
+            border_ic: 3
+            outputD: 32
+        weights:
+            peds: ../weights/tracker/peds.pth
+            cars: ../weights/tracker/cars.pth
+
+    filter:
+        jit: true
+        device: 'cuda'
+        n_max_objects: 10
+        threshold_score: 0.15
+        threshold_area: 0.002
+        class_mapping:
+            peds:
+                - 1
+            cars:
+                - 0
+
+    preprocess:
+        mask_scale_factor: 0.5
+        image_devide_factor: 255
+    
+    sampler:
+        jit: true
+        device: 'cuda'
+        offset_max: 128
+        expand_ratio: 0.2
+        bg_num: 1000 # minimum - mask_scale_factor * H * W
+        fg_num: 500  # bg_num + fg_num = num_points
+        cat_emb:
+            - [+0.948, +0.456, +0.167, ] #backgroung
+            - [+0.100, -0.100, +0.100, ] #current object
+            - [+0.546, -0.619, -2.630, ] #others objects
+            - [-0.100, +0.100, -0.100, ] #i dont know
+
+    assigner:
+        peds: 
+            optim: 'hungarian'
+            use_mask_iou: true
+            use_bbox_iou: false
+            iou_scale: 0.402
+            iou_offset: 0
+            euclidean_scale: 1.344
+            euclidean_offset: 9.447
+            alive_threshold: 10
+            association_threshold: 0.48
+            means_threshold: 70.0
+        cars:
+            optim: 'hungarian'
+            use_mask_iou: true
+            use_bbox_iou: false
+            iou_scale: 0.733
+            iou_offset: 0
+            euclidean_scale: 1.009
+            euclidean_offset: 9.447
+            alive_threshold: 30
+            association_threshold: 0.817
+            means_threshold: 90.0
+
+yolact_edge:
+    tensorrt: false
+    score_threshold: 0.1
+    weights: ../weights/detector/yolact_edge_36_3360_interrupt.pth
+    model_config: 'yolact_edge_kitti_mots'
+    #device: 'cuda'
+
+    

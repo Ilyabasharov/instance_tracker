@@ -1,0 +1,172 @@
+ARG CUDA_VERSION=10.2
+ARG OS_VERSION=20.04
+
+FROM nvcr.io/nvidia/l4t-base:r32.5.0
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV CUDA_HOME="/usr/local/cuda"
+ENV TRT_VERSION=7.1.3
+ENV PATH="/usr/local/cuda/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
+ENV LLVM_CONFIG="/usr/bin/llvm-config-9"
+ARG MAKEFLAGS=-j$(nproc)
+
+RUN apt-get update \
+    && apt-get install \
+        --yes \
+        --no-install-recommends \
+        --allow-downgrades \
+            build-essential \  
+            wget \
+            curl \
+            git \
+            git-lfs \
+            vim \
+            cmake \
+            ca-certificates \
+            lsb-release \
+            sudo \
+            gnupg2 \
+            python3-pip \
+            python3-dev \
+            python3-wheel \
+            python3-setuptools \
+            python3-tk \
+            python3-matplotlib \
+            libopenblas-dev \
+            liblapack-dev \
+            libblas-dev \
+            libhdf5-serial-dev \
+            hdf5-tools \
+            libhdf5-dev \
+            zlib1g-dev \
+            zip \
+            libjpeg8-dev \
+            libopenmpi2 \
+            oplibswscale-devenmpi-bin \
+            openmpi-common \
+            protobuf-compiler \
+            libprotoc-dev \
+            llvm-9 \
+            llvm-9-dev \
+            gfortran \
+            libfreetype6-dev \
+            libjpeg-dev \
+            libavcodec-dev \
+            libavformat-dev \
+            libswscale-dev \
+            libopencv-dev=3.2.0+dfsg-4ubuntu0.1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean \
+    && sudo mv /usr/include/tbb/tbb.h /usr/include/tbb/tbb.bak
+
+# ROS Noetic installation
+ARG ROS_PKG=ros_base
+ARG ROS_DISTRO=noetic
+ENV ROS_DISTRO=${ROS_DISTRO}
+ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
+ENV ROS_PYTHON_VERSION=3
+
+# ROS Noetic installation
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' \
+    && curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add - \
+    && apt-get update \
+    && apt-get install \
+        --yes \
+        --no-install-recommends \
+            libpython3-dev \
+            python3-rosdep \
+            python3-rosinstall-generator \
+            python3-vcstool \
+    && rosdep init \
+    && rosdep update \
+    && ln -s /usr/lib/aarch64-linux-gnu/libboost_python3.so /usr/lib/aarch64-linux-gnu/libboost_python37.so \
+    && mkdir ros_catkin_ws \
+    && cd ros_catkin_ws \
+    && rosinstall_generator ${ROS_PKG} vision_msgs vision_opencv \
+        --rosdistro ${ROS_DISTRO} \
+        --deps \
+        --tar > ${ROS_DISTRO}-${ROS_PKG}.rosinstall \
+    && mkdir src \
+    && vcs import \
+        --input ${ROS_DISTRO}-${ROS_PKG}.rosinstall ./src \
+    && apt-get update \
+    && rosdep install \
+        --from-paths ./src \
+        --ignore-packages-from-source \
+        --rosdistro ${ROS_DISTRO} \
+        --skip-keys \
+        python3-pykdl -y \
+    && python3 ./src/catkin/bin/catkin_make_isolated \
+        --install \
+        --install-space ${ROS_ROOT} \
+        -DCMAKE_BUILD_TYPE=Release \
+    && rm -rf /var/lib/apt/lists/* \
+    && echo 'source /opt/ros/${ROS_DISTRO}/setup.bash' >> ~/.bashrc
+
+ARG USER=user
+ARG UID=1000
+ARG GID=1000
+ARG PW=user
+ARG DEFAULT_PATH=/home
+ARG PROJECT_PATH=catkin_ws/src
+ARG PROJECT_NAME=project
+
+RUN useradd -m ${USER} --uid=${UID} \
+    && echo "${USER}:${PW}" | chpasswd \
+    && adduser ${USER} sudo \
+    && usermod -a -G video ${USER}
+
+WORKDIR ${DEFAULT_PATH}/${USER}
+
+RUN mkdir -p ${DEFAULT_PATH}/${USER}/${PROJECT_PATH}/ && chown -R ${UID}:${GID} ./
+
+COPY --chown=${USER}:${USER} requirements.txt ${DEFAULT_PATH}/${USER}/${PROJECT_PATH}/${PROJECT_NAME}/requirements.txt
+COPY --chown=${USER}:${USER} requirements/ ${DEFAULT_PATH}/${USER}/${PROJECT_PATH}/${PROJECT_NAME}/requirements/
+
+ARG PYTORCH_URL=https://nvidia.box.com/shared/static/fjtbno0vpo676a25cgvuqc1wty0fkkg6.whl
+ARG PYTORCH_WHL=torch-1.10.0-cp36-cp36m-linux_aarch64.whl
+
+ARG TORCHVISION_WHL=https://github.com/pytorch/vision/archive/refs/tags/v0.11.0.zip
+ARG TORCHVISION_ZIP=v0.11.0.zip
+
+RUN python3 -m pip install \
+        --no-cache-dir \
+        --upgrade \
+            pip \
+            wheel \
+            setuptools \
+            packaging \
+    && wget \
+        --quiet \
+        --show-progress \
+        --progress=bar:force:noscroll \
+        --no-check-certificate \
+        ${PYTORCH_URL} \
+        -O ${PYTORCH_WHL} \
+    && pip3 install \
+        --no-cache-dir \
+        ${PYTORCH_WHL} \
+    && rm ${PYTORCH_WHL} \
+    && wget \
+        --quiet \
+        --show-progress \
+        --progress=bar:force:noscroll \
+        --no-check-certificate \
+        ${TORCHVISION_URL} \
+        -O ${TORCHVISION_ZIP} \
+    && unzip ${TORCHVISION_ZIP} \
+    && cd ${TORCHVISION_ZIP} \
+    && python3 setup.py install \
+    && cd .. \
+    && pip3 install \
+        --no-cache-dir \
+        --ignore-installed \
+        --requirement ${DEFAULT_PATH}/${USER}/${PROJECT_PATH}/${PROJECT_NAME}/requirements.txt \
+    && git clone https://github.com/Ilyabasharov/torch2trt.git \
+    && cd torch2trt && python3 setup.py install --plugins \
+    && rm -rf ${DEFAULT_PATH}/${USER}/${PROJECT_PATH}/${PROJECT_NAME}/requirements/ \
+    ${DEFAULT_PATH}/${USER}/${PROJECT_PATH}/${PROJECT_NAME}/requirements.txt
+
+ENV PYTHONPATH="${PYTHONPATH}:${DEFAULT_PATH}/${USER}/torch2trt"
+ENV CUDA_LAUNCH_BLOCKING=1

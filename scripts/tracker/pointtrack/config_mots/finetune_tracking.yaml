@@ -1,0 +1,79 @@
+seed: 0
+class_name: cars
+cudnn: true,
+save: true,
+save_dir: ./car_finetune_tracking
+
+train_dataset: 
+    name: mots_track_train
+    batch_size: 1
+    workers: 2
+    kwargs:
+        database_path: ../../../data/CarsEnvDB
+        dataset_root: ../../../data/kitti_mots
+        type: train
+        num_points: 1500
+        shift: true
+        sample_num: 24
+        nearby: 10
+        trainval: false
+        category_embedding:
+            - [+0.948, +0.456, +0.167, ] #backgroung
+            - [+0.100, -0.100, +0.100, ] #current object
+            - [+0.546, -0.619, -2.630, ] #others objects
+            - [-0.100, +0.100, -0.100, ] #i dont know
+
+val_dataset:
+    name: mots_track_train
+    batch_size: 1
+    workers: 1
+    kwargs:
+        database_path: ../../../data/CarsEnvDB
+        dataset_root: ../../../data/kitti_mots
+        type: val
+        num_points: 1500
+        shift: False
+        sample_num: 24
+        nearby: 10
+        trainval: False
+        category_embedding:
+            - [+0.948, +0.456, +0.167, ] #backgroung
+            - [+0.100, -0.100, +0.100, ] #current object
+            - [+0.546, -0.619, -2.630, ] #others objects
+            - [-0.100, +0.100, -0.100, ] #i dont know
+
+loss:
+    name: ranking
+    kwargs:
+        margin: 0.2
+
+model:
+    name: tracker_offset_emb
+    kwargs:
+        device: cuda
+        tensorrt:
+            convert: false
+        offsetEmb:
+            num_points: 1500
+            border_ic: 3
+            outputD: 32
+        weights:
+            peds: ../../../weights/tracker/peds.pth
+            cars: ../../../weights/tracker/cars.pth
+
+optimizer:
+    lr: 0.002
+    weight_decay: 0.0001
+
+scheduler:
+    milestones:
+        - 20
+        - 30
+    gamma: 0.1
+
+# loss options
+loss_function:
+    margin: 0.2
+
+n_epochs: 35
+start_epoch: 1

@@ -1,0 +1,13 @@
+rosdep==0.21.0
+rospkg==1.3.0
+
+pyyaml==6.0
+numpy==1.19.4
+numba==0.52.0
+scipy==1.5.4
+matplotlib==3.2.2
+pycocotools==2.0.4
+prettytable==2.5.0
+click
+tqdm
+h5py

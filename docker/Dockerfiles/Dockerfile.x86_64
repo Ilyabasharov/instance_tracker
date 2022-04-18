@@ -1,0 +1,138 @@
+ARG CUDA_VERSION=11.3.1
+ARG OS_VERSION=20.04
+
+FROM nvidia/cuda:${CUDA_VERSION}-cudnn8-devel-ubuntu${OS_VERSION}
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV CUDA_HOME="/usr/local/cuda"
+ENV TRT_VERSION=8.0.1.6
+ENV PATH="/usr/local/cuda/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
+ARG MAKEFLAGS=-j$(nproc)
+
+RUN apt-get update \
+    && apt-get install \
+        --yes \
+        --no-install-recommends \
+            build-essential \  
+            wget \
+            curl \
+            git \
+            git-lfs \
+            vim \
+            cmake \
+            ca-certificates \
+            lsb-release \
+            sudo \
+            gnupg2 \
+            python3-pip \
+            python3-dev \
+            python3-wheel \
+            python3-setuptools \
+            python3-tk \
+            python3-matplotlib \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Install TensorRT
+RUN v="${TRT_VERSION%.*}-1+cuda${CUDA_VERSION%.*}" && \
+    echo "deb [by-hash=no] http://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64 /" > /etc/apt/sources.list.d/cuda.list && \
+    apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub && \
+    apt-get update && \
+    sudo apt-get install \
+        libnvinfer8=${v} \
+        libnvonnxparsers8=${v} \
+        libnvparsers8=${v} \
+        libnvinfer-plugin8=${v} \
+        libnvinfer-dev=${v} \
+        libnvonnxparsers-dev=${v} \
+        libnvparsers-dev=${v} \
+        libnvinfer-plugin-dev=${v} \
+        python3-libnvinfer=${v}
+
+# ROS Noetic installation
+ARG ROS_PKG=ros_base
+ARG ROS_DISTRO=noetic
+ENV ROS_DISTRO=${ROS_DISTRO}
+ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
+ENV ROS_PYTHON_VERSION=3
+
+# ROS Noetic installation
+RUN sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' \
+    && curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add - \
+    && apt-get update \
+    && apt-get install \
+        --yes \
+        --no-install-recommends \
+            ros-${ROS_DISTRO}-desktop-full \
+            python3-rosdep \
+            python3-rosinstall \
+            python3-rosinstall-generator \
+            python3-wstool \
+    && rm -rf /var/lib/apt/lists/*
+
+ARG USER=user
+ARG UID=1000
+ARG GID=1000
+ARG PW=user
+ARG DEFAULT_PATH=/home
+ARG PROJECT_PATH=catkin_ws/src
+ARG PROJECT_NAME=project
+
+WORKDIR ${DEFAULT_PATH}/${USER}
+
+RUN useradd -m ${USER} --uid=${UID} \
+    && echo "${USER}:${PW}" | chpasswd \
+    && adduser ${USER} sudo \
+    && usermod -a -G sudo ${USER}
+
+RUN mkdir -p ${DEFAULT_PATH}/${USER}/${PROJECT_PATH}/ && chown -R ${UID}:${GID} ./
+COPY --chown=${USER}:${USER} requirements.txt ${DEFAULT_PATH}/${USER}/${PROJECT_PATH}/${PROJECT_NAME}/
+COPY --chown=${USER}:${USER} requirements/ ${DEFAULT_PATH}/${USER}/${PROJECT_PATH}/${PROJECT_NAME}/requirements/
+
+ARG PYTORCH_URL=https://download.pytorch.org/whl/cu113/torch-1.10.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG PYTORCH_WHL=torch-1.10.0-cp38-cp38-manylinux1_x86_64.whl
+
+ARG TORCHVISION_URL=https://download.pytorch.org/whl/cu113/torchvision-0.11.0%2Bcu113-cp38-cp38-linux_x86_64.whl
+ARG TORCHVISION_WHL=torchvision-0.11.0+cu113-cp38-cp38-linux_x86_64.whl
+
+RUN python3 -m pip install \
+        --no-cache-dir \
+        --upgrade \
+            pip \
+            wheel \
+            setuptools \
+            packaging \
+    && wget \
+        --quiet \
+        --show-progress \
+        --progress=bar:force:noscroll \
+        --no-check-certificate \
+        ${PYTORCH_URL} \
+        -O ${PYTORCH_WHL} \
+    && pip3 install \
+        --no-cache-dir \
+        ${PYTORCH_WHL} \
+    && rm ${PYTORCH_WHL} \
+    && wget \
+        --quiet \
+        --show-progress \
+        --progress=bar:force:noscroll \
+        --no-check-certificate \
+        ${TORCHVISION_URL} \
+        -O ${TORCHVISION_WHL} \
+    && pip3 install \
+        --no-cache-dir \
+        ${TORCHVISION_WHL} \
+    && rm ${TORCHVISION_WHL} \
+    && pip3 install \
+        --no-cache-dir \
+        --ignore-installed \
+        --requirement ${DEFAULT_PATH}/${USER}/${PROJECT_PATH}/${PROJECT_NAME}/requirements.txt \
+    && git clone https://github.com/Ilyabasharov/torch2trt.git \
+    && cd torch2trt && python3 setup.py install --plugins \
+    && rm -rf ${DEFAULT_PATH}/${USER}/${PROJECT_PATH}/${PROJECT_NAME}/requirements/ \
+    ${DEFAULT_PATH}/${USER}/${PROJECT_PATH}/${PROJECT_NAME}/requirements.txt
+
+ENV PYTHONPATH="${PYTHONPATH}:${DEFAULT_PATH}/${USER}/torch2trt"
+ENV CUDA_LAUNCH_BLOCKING=1
