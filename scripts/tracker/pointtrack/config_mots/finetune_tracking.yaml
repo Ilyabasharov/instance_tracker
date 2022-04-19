@@ -6,6 +6,7 @@ save_dir: ./car_finetune_tracking
 
 train_dataset: 
     name: mots_track_train
+    # supports only batch_size 1!
     batch_size: 1
     workers: 2
     kwargs:
@@ -25,6 +26,7 @@ train_dataset:
 
 val_dataset:
     name: mots_track_train
+    # supports only batch_size 1!
     batch_size: 1
     workers: 1
     kwargs:
