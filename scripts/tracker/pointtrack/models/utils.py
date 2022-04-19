@@ -43,29 +43,40 @@ def get_embedding_model(
 
         print(f'Convert pointtrack to TRT for class {classname}...')
 
-        model = torch2trt.torch2trt(
-            module=model,
-            inputs=[
-                # one batch required input
-                # points shape (B x NUM_POINTS x 8)
-                torch.zeros(
-                    (1, 1500, 8),
-                    dtype=torch.float32,
-                    device=params['device'],
-                ),
-                # xyxys shape (B x 4)
-                torch.zeros(
-                    (1, 4),
-                    dtype=torch.float32,
-                    device=params['device'],
-                )
-            ],
-            max_batch_size=params['tensorrt']['max_batch_size'],
-            fp16_mode=params['tensorrt']['fp16_mode'],
-            int8_mode=params['tensorrt']['int8_mode'],
-            input_names=['points', 'xyxys', ],
-            output_names=['embedding', ], 
-        )
+        weights_trt = params['weights'][classname] + '.trt'
+
+        if os.path.exists(weights_trt):
+            print('Loading TRT cache ...')
+            model = torch2trt.TRTModule()
+            model.load_state_dict(torch.load(weights_trt))
+
+        else:
+
+            model = torch2trt.torch2trt(
+                module=model,
+                inputs=[
+                    # one batch required input
+                    # points shape (B x NUM_POINTS x 8)
+                    torch.zeros(
+                        (1, 1500, 8),
+                        dtype=torch.float32,
+                        device=params['device'],
+                    ),
+                    # xyxys shape (B x 4)
+                    torch.zeros(
+                        (1, 4),
+                        dtype=torch.float32,
+                        device=params['device'],
+                    ),
+                ],
+                max_batch_size=params['tensorrt']['max_batch_size'],
+                fp16_mode=params['tensorrt']['fp16_mode'],
+                int8_mode=params['tensorrt']['int8_mode'],
+                input_names=['points', 'xyxys', ],
+                output_names=['embedding', ],
+            )
+
+            torch.save(model.state_dict(), weights_trt)
 
         print('Done!')
 
