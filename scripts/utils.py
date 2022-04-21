@@ -86,10 +86,10 @@ def mask_iou(
 
     """
     Inputs:
-    mask1: NxHxW torch.float32.
-    mask2: NxHxW torch.float32.
+    mask1: NxHxW torch.float32. Consists of [0, 1]
+    mask2: NxHxW torch.float32. Consists of [0, 1]
     Outputs:
-    ret: NxM
+    ret: NxM torch.float32. Consists of [0 - 1]
     """
 
     N, H, W = mask1.shape
